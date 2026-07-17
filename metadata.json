@@ -1,0 +1,8 @@
+{
+  "name": "Neon Messenger",
+  "description": "An encrypted E2E messenger similar to Telegram built with Jetpack Compose featuring multiple accounts, 2FA, and Neon visual themes (snowflakes, cherry blossoms, confetti, neon moon room).",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
