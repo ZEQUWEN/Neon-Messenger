@@ -8,6 +8,8 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import net.sqlcipher.database.SupportFactory
+
 import com.example.ui.Chat
 import com.example.ui.Draft
 import com.example.ui.Contact
@@ -152,13 +154,20 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
-        fun getDatabase(context: Context): AppDatabase {
+                fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
+                val dbName = "messenger_database_encrypted"
+                val passphrase = "messenger_secret_passphrase".toCharArray()
+                DatabaseDiagnosticUtility.performStartupDiagnostics(context, dbName, passphrase)
+
+
+                val factory = SupportFactory("messenger_secret_passphrase".toByteArray())
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "messenger_database"
+                    dbName
                 )
+                .openHelperFactory(factory)
                 .fallbackToDestructiveMigration()
                 .build()
                 INSTANCE = instance

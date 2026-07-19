@@ -35,7 +35,7 @@ class MainActivity : ComponentActivity() {
         if (lastCrash != null) {
             setContent {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    Text(text = "PREVIOUS CRASH:\n\$lastCrash", modifier = Modifier.padding(16.dp).verticalScroll(rememberScrollState()))
+                    Text(text = "PREVIOUS CRASH:\n$lastCrash", modifier = Modifier.padding(16.dp).verticalScroll(rememberScrollState()))
                 }
             }
             return
@@ -43,6 +43,7 @@ class MainActivity : ComponentActivity() {
 
         try {
             com.example.data.CryptoManager.init(applicationContext)
+            net.sqlcipher.database.SQLiteDatabase.loadLibs(applicationContext)
             val db = AppDatabase.getDatabase(applicationContext)
             val sharedPrefs = getSharedPreferences("neon_messenger_prefs", android.content.Context.MODE_PRIVATE)
             val repository = MessengerRepository(db.userDao(), db.chatDao(), db.messageDao(), db.groupMemberDao(), db.draftDao(), db.contactDao(), sharedPrefs)

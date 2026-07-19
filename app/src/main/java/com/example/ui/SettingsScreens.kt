@@ -7,6 +7,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.draw.scale
+import androidx.compose.material3.Switch
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBar
+
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -136,6 +146,12 @@ fun SettingsMenuScreen(viewModel: AppViewModel, navController: NavController) {
             // Settings Categories
             Text("Settings", modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
             
+            SettingsListItem(
+                icon = { Icon(Icons.Filled.Group, null, tint = MaterialTheme.colorScheme.onPrimaryContainer) },
+                title = "Accounts",
+                subtitle = "Manage authorized accounts",
+                onClick = { navController.navigate("settings/accounts") }
+            )
             SettingsListItem(
                 icon = { Icon(Icons.Filled.Person, null, tint = MaterialTheme.colorScheme.onPrimaryContainer) },
                 title = "Profile",
@@ -507,6 +523,34 @@ fun SettingsSecurityScreen(viewModel: AppViewModel, navController: NavController
             
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             
+        Text("Data and Backup", modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
+            val context = androidx.compose.ui.platform.LocalContext.current
+            val coroutineScope = rememberCoroutineScope()
+            var isExporting by remember { mutableStateOf(false) }
+            val exportLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+                contract = androidx.activity.result.contract.ActivityResultContracts.CreateDocument("application/zip")
+            ) { uri ->
+                if (uri != null) {
+                    isExporting = true
+                    coroutineScope.launch {
+                        val success = com.example.data.BackupUtility.exportDatabase(context, uri)
+                        isExporting = false
+                        android.widget.Toast.makeText(context, if (success) "Backup exported successfully" else "Backup failed", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
+            SettingsListItem(
+                icon = { Icon(Icons.Filled.Backup, null) },
+                title = "Export Local Backup",
+                subtitle = if (isExporting) "Exporting..." else "Save encrypted database backup",
+                onClick = {
+                    exportLauncher.launch("messenger_backup_${System.currentTimeMillis()}.zip")
+                }
+            )
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
             Text("Delete My Account", modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
             SettingsSimpleItem(title = "If away for", value = deleteAccountValue, onClick = { deleteAccountDialogVisible = true })
             
@@ -897,6 +941,72 @@ fun PrivacySettingScreen(navController: NavController, settingName: String) {
                     Text(option)
                     RadioButton(selected = selectedOption == option, onClick = null)
                 }
+            }
+        }
+    }
+}
+
+@androidx.compose.material3.ExperimentalMaterial3Api
+@Composable
+fun SettingsAccountsScreen(viewModel: AppViewModel, navController: NavController) {
+    val accounts by viewModel.accounts.collectAsState()
+    val activeAccount = LocalActiveAccount.current ?: return
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Accounts") },
+                navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") } }
+            )
+        }
+    ) { padding ->
+        LazyColumn(modifier = Modifier.padding(padding).fillMaxSize()) {
+            items(accounts) { account ->
+                val isCurrent = account.id == activeAccount.id
+                ListItem(
+                    headlineContent = { Text(account.displayName) },
+                    supportingContent = { Text(account.username) },
+                    leadingContent = {
+                        AsyncImage(
+                            model = account.profilePicUrl,
+                            contentDescription = "Avatar",
+                            modifier = Modifier.size(40.dp).clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    },
+                    trailingContent = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (isCurrent) {
+                                Icon(Icons.Filled.Check, contentDescription = "Active", tint = MaterialTheme.colorScheme.primary)
+                                Spacer(modifier = Modifier.width(8.dp))
+                            }
+                            // 2FA toggle
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("2FA", style = MaterialTheme.typography.labelSmall)
+                                Switch(
+                                    checked = account.is2FAEnabled,
+                                    onCheckedChange = { viewModel.toggle2FA(account.id, it) },
+                                    modifier = Modifier.scale(0.8f)
+                                )
+                            }
+                        }
+                    },
+                    modifier = Modifier.clickable {
+                        if (!isCurrent) {
+                            viewModel.switchAccount(account.id)
+                        }
+                    }
+                )
+                HorizontalDivider()
+            }
+            item {
+                ListItem(
+                    headlineContent = { Text("Add Account") },
+                    leadingContent = { Icon(Icons.Filled.Add, null) },
+                    modifier = Modifier.clickable {
+                        viewModel.addAccountAction()
+                    }
+                )
             }
         }
     }

@@ -576,6 +576,12 @@ class AppViewModel(private val repository: MessengerRepository) : ViewModel() {
         }
     }
     
+
+    fun addAccountAction() {
+        _isAddingAccount.value = true
+    }
+
+
     fun switchAccount(accountId: String) {
         viewModelScope.launch {
             val account = accounts.value.find { it.id == accountId }

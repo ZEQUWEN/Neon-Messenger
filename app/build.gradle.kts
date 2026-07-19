@@ -92,6 +92,8 @@ dependencies {
   implementation(libs.androidx.navigation.compose)
   implementation(libs.androidx.room.ktx)
   implementation(libs.androidx.room.runtime)
+  implementation(libs.android.database.sqlcipher)
+  implementation(libs.androidx.sqlite.ktx)
   implementation(libs.coil.compose)
   implementation(libs.coil.gif)
   implementation(libs.converter.moshi)

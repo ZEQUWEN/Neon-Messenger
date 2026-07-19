@@ -1,4 +1,6 @@
 package com.example.ui
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -283,7 +285,33 @@ fun ChatScreen(viewModel: AppViewModel, chatId: String, navController: NavContro
                             )
                         }
                     }
+
+                    var showEmojiPicker by remember { mutableStateOf(false) }
+                    IconButton(onClick = { showEmojiPicker = !showEmojiPicker }) {
+                        Text("😀", style = MaterialTheme.typography.titleLarge)
+                    }
+                    if (showEmojiPicker) {
+                        DropdownMenu(
+                            expanded = showEmojiPicker,
+                            onDismissRequest = { showEmojiPicker = false }
+                        ) {
+                            val emojis = listOf("😀", "😂", "🥰", "😎", "🤔", "👍", "❤️", "🔥")
+                            Row(modifier = Modifier.padding(8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                emojis.forEach { emoji ->
+                                    Text(
+                                        text = emoji,
+                                        style = MaterialTheme.typography.titleLarge,
+                                        modifier = Modifier.clickable { 
+                                            inputText += emoji
+                                            showEmojiPicker = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
                     OutlinedTextField(
+
                         value = inputText,
                         onValueChange = { inputText = it },
                         placeholder = { Text("Message...") },

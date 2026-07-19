@@ -266,6 +266,7 @@ fun MainAppNavigation(viewModel: AppViewModel) {
                             composable("contacts") { ContactsScreen(viewModel, mainNavController) }
                             composable("calls") { CallsListScreen(mainNavController) }
                             composable("settings") { SettingsMenuScreen(viewModel, mainNavController) }
+                            composable("settings/accounts") { SettingsAccountsScreen(viewModel, mainNavController) }
                             composable("settings/profile") { MyProfileScreen(viewModel, mainNavController) }
                             composable("settings/general") { SettingsGeneralScreen(viewModel, mainNavController) }
                             composable("settings/colors") { SettingsColorsScreen(viewModel, mainNavController) }
